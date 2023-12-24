@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
+import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import Seo from "@/components/Seo";
+
+type Repo = {
+  results: Movies[] | null;
+};
 
 type Movies = {
   id: number;
@@ -7,23 +12,13 @@ type Movies = {
   poster_path: string;
 };
 
-export default function Home() {
-  const [movies, setMovies] = useState<Movies[] | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      const { results } = await (await fetch("/api/movies")).json();
-
-      setMovies(results);
-    })();
-  }, []);
-
+export default function Home({ repo }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { results } = repo;
   return (
     <>
       <div className="container">
         <Seo title="Home" />
-        {!movies && <h4>loading...</h4>}
-        {movies?.map((movie) => (
+        {results?.map((movie) => (
           <div className="movie" key={movie.id}>
             <img src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`} />
             <h4>{movie.original_title}</h4>
@@ -54,3 +49,10 @@ export default function Home() {
     </>
   );
 }
+
+export const getServerSideProps = (async () => {
+  const res = await fetch("http://localhost:3000/api/movies");
+  const repo: Repo = await res.json();
+
+  return { props: { repo } };
+}) satisfies GetServerSideProps<{ repo: Repo }>;
