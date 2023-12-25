@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import Seo from "@/components/Seo";
 
 type Repo = {
@@ -14,14 +16,35 @@ type Movies = {
 
 export default function Home({ repo }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { results } = repo;
+  const router = useRouter();
+
+  const clickMovieImg = (id: number, title: string) => {
+    router.push({ pathname: `/movies/${id}`, query: { title } }, `/movies/${id}`);
+  };
+
   return (
     <>
       <div className="container">
         <Seo title="Home" />
         {results?.map((movie) => (
           <div className="movie" key={movie.id}>
-            <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} />
-            <h4>{movie.original_title}</h4>
+            <img
+              onClick={() => {
+                clickMovieImg(movie.id, movie.original_title);
+              }}
+              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+            />
+            <Link
+              href={{
+                pathname: `/movies/${movie.id}`,
+                query: {
+                  title: movie.original_title,
+                },
+              }}
+              as={`/movies/${movie.id}`}
+            >
+              <h4>{movie.original_title}</h4>
+            </Link>
           </div>
         ))}
       </div>
